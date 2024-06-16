@@ -132,10 +132,12 @@ char *C_HL_keywords[] = {
 // Python
 char *PY_HL_extensions[] = {".py", NULL};
 char *PY_HL_keywords[] = {
+    // Control and other keywords
     "and", "as", "assert", "break", "class", "continue", "def", "del", "elif", "else",
     "except", "finally", "for", "from", "global", "if", "import", "in", "is", "lambda",
     "nonlocal", "not", "or", "pass", "raise", "return", "try", "while", "with", "yield",
 
+    // Built-in functions
     "False|", "None|", "True|", "__import__|", "abs|", "all|", "any|", "ascii|", "bin|",
     "bool|", "bytearray|", "bytes|", "callable|", "chr|", "classmethod|", "compile|",
     "complex|", "delattr|", "dict|", "dir|", "divmod|", "enumerate|", "eval|", "exec|",
@@ -144,16 +146,21 @@ char *PY_HL_keywords[] = {
     "iter|", "len|", "list|", "locals|", "map|", "max|", "memoryview|", "min|", "next|",
     "object|", "oct|", "open|", "ord|", "pow|", "print|", "property|", "range|",
     "repr|", "reversed|", "round|", "set|", "setattr|", "slice|", "sorted|", "staticmethod|",
-    "str|", "sum|", "super|", "tuple|", "type|", "vars|", "zip|", NULL};
+    "str|", "sum|", "super|", "tuple|", "type|", "vars|", "zip|", "bytes|", "bytearray|",
+    "memoryview|", "frozenset|", "Ellipsis|", "__debug__|", "NotImplemented|",
+
+    NULL};
 
 // JavaScript
 char *JS_HL_extensions[] = {".js", ".mjs", NULL};
 char *JS_HL_keywords[] = {
+    // Control and other keywords
     "break", "case", "catch", "class", "const", "continue", "debugger", "default", "delete",
     "do", "else", "export", "extends", "finally", "for", "function", "if", "import", "in",
     "instanceof", "new", "return", "super", "switch", "this", "throw", "try", "typeof",
     "var", "void", "while", "with", "yield", "async", "await",
 
+    // Built-in objects and functions
     "true|", "false|", "null|", "undefined|", "NaN|", "Infinity|", "eval|", "isFinite|",
     "isNaN|", "parseFloat|", "parseInt|", "decodeURI|", "decodeURIComponent|",
     "encodeURI|", "encodeURIComponent|", "escape|", "unescape|", "Object|", "Function|",
@@ -163,12 +170,17 @@ char *JS_HL_keywords[] = {
     "Int16Array|", "Uint16Array|", "Int32Array|", "Uint32Array|", "Float32Array|",
     "Float64Array|", "Map|", "Set|", "WeakMap|", "WeakSet|", "ArrayBuffer|", "SharedArrayBuffer|",
     "Atomics|", "DataView|", "JSON|", "Promise|", "Generator|", "GeneratorFunction|", "AsyncFunction|",
-    "Reflect|", "Proxy|", "Intl|", "WebAssembly|", NULL};
+    "Reflect|", "Proxy|", "Intl|", "WebAssembly|", "console|", "window|", "document|", "localStorage|",
+    "sessionStorage|", "alert|", "confirm|", "prompt|", "setTimeout|", "clearTimeout|", "setInterval|",
+    "clearInterval|", "requestAnimationFrame|", "cancelAnimationFrame|", "fetch|", "XMLHttpRequest|",
+
+    NULL};
 
 // HTML
 char *HTML_HL_extensions[] = {".html", ".htm", NULL};
 char *HTML_HL_keywords[] = {
-    "doctype|", "a|", "abbr|", "acronym|", "address|", "applet|", "area|", "article|", "aside|", "audio|",
+    // Common HTML tags
+    "!DOCTYPE|", "a|", "abbr|", "acronym|", "address|", "applet|", "area|", "article|", "aside|", "audio|",
     "b|", "base|", "basefont|", "bdi|", "bdo|", "big|", "blockquote|", "body|", "br|", "button|",
     "canvas|", "caption|", "center|", "cite|", "code|", "col|", "colgroup|", "data|", "datalist|",
     "dd|", "del|", "details|", "dfn|", "dialog|", "dir|", "div|", "dl|", "dt|", "em|", "embed|",
@@ -180,7 +192,20 @@ char *HTML_HL_keywords[] = {
     "samp|", "script|", "section|", "select|", "small|", "source|", "span|", "strike|", "strong|",
     "style|", "sub|", "summary|", "sup|", "svg|", "table|", "tbody|", "td|", "template|", "textarea|",
     "tfoot|", "th|", "thead|", "time|", "title|", "tr|", "track|", "tt|", "u|", "ul|", "var|",
-    "video|", "wbr|", "!DOCTYPE|", NULL};
+    "video|", "wbr|",
+
+    // HTML attributes
+    "class|", "id|", "src|", "href|", "alt|", "title|", "style|", "width|", "height|", "type|", "value|",
+    "name|", "content|", "charset|", "rel|", "media|", "defer|", "async|", "target|", "action|", "method|",
+    "autocomplete|", "novalidate|", "enctype|", "accept-charset|", "for|", "multiple|", "disabled|",
+    "readonly|", "required|", "placeholder|", "checked|", "selected|", "maxlength|", "pattern|", "step|",
+    "min|", "max|", "autofocus|", "draggable|", "spellcheck|", "translate|", "contenteditable|", "contextmenu|",
+    "download|", "hidden|", "open|", "form|", "formaction|", "formenctype|", "formmethod|", "formnovalidate|",
+    "formtarget|", "sandbox|", "srcdoc|", "srclang|", "poster|", "kind|", "autoplay|", "controls|", "loop|",
+    "muted|", "preload|", "buffered|", "scoped|", "reversed|", "start|", "ping|", "usemap|", "ismap|",
+    "crossorigin|", "integrity|", "referrerpolicy|", "loading|", "importance|", "fetchpriority|", "referrer|",
+
+    NULL};
 
 struct editorSyntax HLDB[] = {
     {"c",
