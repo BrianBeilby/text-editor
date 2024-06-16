@@ -100,13 +100,87 @@ struct editorConfig E;
 
 /*** filetypes ***/
 
+// C/C++
 char *C_HL_extensions[] = {".c", ".h", ".cpp", NULL};
 char *C_HL_keywords[] = {
+    // Control keywords
     "switch", "if", "while", "for", "break", "continue", "return", "else",
-    "struct", "union", "typedef", "static", "enum", "class", "case",
+    "struct", "union", "typedef", "static", "enum", "class", "case", "default",
+    "goto", "sizeof", "volatile", "do", "const",
 
+    // Types
     "int|", "long|", "double|", "float|", "char|", "unsigned|", "signed|",
-    "void|", NULL};
+    "void|", "short|", "auto|", "extern|", "register|", "const|", "volatile|",
+    "inline|", "bool|", "_Bool|", "_Complex|", "_Imaginary|",
+
+    // C++ Specific
+    "namespace", "using", "public", "private", "protected", "template",
+    "operator", "virtual", "explicit", "friend", "inline", "namespace", "new",
+    "delete", "try", "catch", "throw", "this", "constexpr", "noexcept",
+    "nullptr", "override", "final", "decltype",
+
+    // C++ types
+    "std::string|", "std::vector|", "std::map|", "std::unordered_map|",
+    "std::set|", "std::unordered_set|", "std::list|", "std::deque|",
+    "std::forward_list|", "std::array|", "std::unique_ptr|", "std::shared_ptr|",
+    "std::weak_ptr|", "std::function|", "std::bind|", "std::mem_fn|",
+    "std::thread|", "std::mutex|", "std::condition_variable|", "std::lock_guard|",
+    "std::unique_lock|", "std::chrono|",
+
+    NULL};
+
+// Python
+char *PY_HL_extensions[] = {".py", NULL};
+char *PY_HL_keywords[] = {
+    "and", "as", "assert", "break", "class", "continue", "def", "del", "elif", "else",
+    "except", "finally", "for", "from", "global", "if", "import", "in", "is", "lambda",
+    "nonlocal", "not", "or", "pass", "raise", "return", "try", "while", "with", "yield",
+
+    "False|", "None|", "True|", "__import__|", "abs|", "all|", "any|", "ascii|", "bin|",
+    "bool|", "bytearray|", "bytes|", "callable|", "chr|", "classmethod|", "compile|",
+    "complex|", "delattr|", "dict|", "dir|", "divmod|", "enumerate|", "eval|", "exec|",
+    "filter|", "float|", "format|", "frozenset|", "getattr|", "globals|", "hasattr|",
+    "hash|", "help|", "hex|", "id|", "input|", "int|", "isinstance|", "issubclass|",
+    "iter|", "len|", "list|", "locals|", "map|", "max|", "memoryview|", "min|", "next|",
+    "object|", "oct|", "open|", "ord|", "pow|", "print|", "property|", "range|",
+    "repr|", "reversed|", "round|", "set|", "setattr|", "slice|", "sorted|", "staticmethod|",
+    "str|", "sum|", "super|", "tuple|", "type|", "vars|", "zip|", NULL};
+
+// JavaScript
+char *JS_HL_extensions[] = {".js", ".mjs", NULL};
+char *JS_HL_keywords[] = {
+    "break", "case", "catch", "class", "const", "continue", "debugger", "default", "delete",
+    "do", "else", "export", "extends", "finally", "for", "function", "if", "import", "in",
+    "instanceof", "new", "return", "super", "switch", "this", "throw", "try", "typeof",
+    "var", "void", "while", "with", "yield", "async", "await",
+
+    "true|", "false|", "null|", "undefined|", "NaN|", "Infinity|", "eval|", "isFinite|",
+    "isNaN|", "parseFloat|", "parseInt|", "decodeURI|", "decodeURIComponent|",
+    "encodeURI|", "encodeURIComponent|", "escape|", "unescape|", "Object|", "Function|",
+    "Boolean|", "Symbol|", "Error|", "EvalError|", "InternalError|", "RangeError|",
+    "ReferenceError|", "SyntaxError|", "TypeError|", "URIError|", "Number|", "Math|",
+    "Date|", "String|", "RegExp|", "Array|", "Int8Array|", "Uint8Array|", "Uint8ClampedArray|",
+    "Int16Array|", "Uint16Array|", "Int32Array|", "Uint32Array|", "Float32Array|",
+    "Float64Array|", "Map|", "Set|", "WeakMap|", "WeakSet|", "ArrayBuffer|", "SharedArrayBuffer|",
+    "Atomics|", "DataView|", "JSON|", "Promise|", "Generator|", "GeneratorFunction|", "AsyncFunction|",
+    "Reflect|", "Proxy|", "Intl|", "WebAssembly|", NULL};
+
+// HTML
+char *HTML_HL_extensions[] = {".html", ".htm", NULL};
+char *HTML_HL_keywords[] = {
+    "doctype|", "a|", "abbr|", "acronym|", "address|", "applet|", "area|", "article|", "aside|", "audio|",
+    "b|", "base|", "basefont|", "bdi|", "bdo|", "big|", "blockquote|", "body|", "br|", "button|",
+    "canvas|", "caption|", "center|", "cite|", "code|", "col|", "colgroup|", "data|", "datalist|",
+    "dd|", "del|", "details|", "dfn|", "dialog|", "dir|", "div|", "dl|", "dt|", "em|", "embed|",
+    "fieldset|", "figcaption|", "figure|", "font|", "footer|", "form|", "frame|", "frameset|",
+    "h1|", "h2|", "h3|", "h4|", "h5|", "h6|", "head|", "header|", "hr|", "html|", "i|", "iframe|",
+    "img|", "input|", "ins|", "kbd|", "label|", "legend|", "li|", "link|", "main|", "map|", "mark|",
+    "meta|", "meter|", "nav|", "noframes|", "noscript|", "object|", "ol|", "optgroup|", "option|",
+    "output|", "p|", "param|", "picture|", "pre|", "progress|", "q|", "rp|", "rt|", "ruby|", "s|",
+    "samp|", "script|", "section|", "select|", "small|", "source|", "span|", "strike|", "strong|",
+    "style|", "sub|", "summary|", "sup|", "svg|", "table|", "tbody|", "td|", "template|", "textarea|",
+    "tfoot|", "th|", "thead|", "time|", "title|", "tr|", "track|", "tt|", "u|", "ul|", "var|",
+    "video|", "wbr|", "!DOCTYPE|", NULL};
 
 struct editorSyntax HLDB[] = {
     {"c",
@@ -114,7 +188,21 @@ struct editorSyntax HLDB[] = {
      C_HL_keywords,
      "//", "/*", "*/",
      HL_HIGHLIGHT_STRINGS | HL_HIGHLIGHT_NUMBERS},
-};
+    {"python",
+     PY_HL_extensions,
+     PY_HL_keywords,
+     "#", NULL, NULL,
+     HL_HIGHLIGHT_STRINGS | HL_HIGHLIGHT_NUMBERS},
+    {"javascript",
+     JS_HL_extensions,
+     JS_HL_keywords,
+     "//", "/*", "*/",
+     HL_HIGHLIGHT_STRINGS | HL_HIGHLIGHT_NUMBERS},
+    {"html",
+     HTML_HL_extensions,
+     HTML_HL_keywords,
+     NULL, "<!--", "-->",
+     HL_HIGHLIGHT_STRINGS}};
 
 #define HLDB_ENTRIES (sizeof(HLDB) / sizeof(HLDB[0]))
 
