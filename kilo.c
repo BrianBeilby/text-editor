@@ -7,6 +7,7 @@
 #include <ctype.h>
 #include <errno.h>
 #include <fcntl.h>
+#include <ncurses.h>
 #include <stdio.h>
 #include <stdarg.h>
 #include <stdlib.h>
@@ -274,84 +275,30 @@ void enableRawMode()
 
 int editorReadKey()
 {
-    int nread;
-    char c;
-    while ((nread = read(STDIN_FILENO, &c, 1)) != 1)
+    int c = getch();
+    switch (c)
     {
-        if (nread == -1 && errno != EAGAIN)
-            die("read");
-    }
-
-    if (c == '\x1b')
-    {
-        char seq[3];
-
-        if (read(STDIN_FILENO, &seq[0], 1) != 1)
-            return '\x1b';
-        if (read(STDIN_FILENO, &seq[1], 1) != 1)
-            return '\x1b';
-
-        if (seq[0] == '[')
-        {
-            if (seq[1] >= '0' && seq[1] <= '9')
-            {
-                if (read(STDIN_FILENO, &seq[2], 1) != 1)
-                    return '\x1b';
-                if (seq[2] == '~')
-                {
-                    switch (seq[1])
-                    {
-                    case '1':
-                        return HOME_KEY;
-                    case '3':
-                        return DEL_KEY;
-                    case '4':
-                        return END_KEY;
-                    case '5':
-                        return PAGE_UP;
-                    case '6':
-                        return PAGE_DOWN;
-                    case '7':
-                        return HOME_KEY;
-                    case '8':
-                        return END_KEY;
-                    }
-                }
-            }
-            else
-            {
-                switch (seq[1])
-                {
-                case 'A':
-                    return ARROW_UP;
-                case 'B':
-                    return ARROW_DOWN;
-                case 'C':
-                    return ARROW_RIGHT;
-                case 'D':
-                    return ARROW_LEFT;
-                case 'H':
-                    return HOME_KEY;
-                case 'F':
-                    return END_KEY;
-                }
-            }
-        }
-        else if (seq[0] == 'O')
-        {
-            switch (seq[1])
-            {
-            case 'H':
-                return HOME_KEY;
-            case 'F':
-                return END_KEY;
-            }
-        }
-
-        return '\x1b';
-    }
-    else
-    {
+    case KEY_LEFT:
+        return ARROW_LEFT;
+    case KEY_RIGHT:
+        return ARROW_RIGHT;
+    case KEY_UP:
+        return ARROW_UP;
+    case KEY_DOWN:
+        return ARROW_DOWN;
+    case KEY_BACKSPACE:
+        return BACKSPACE;
+    case KEY_DC:
+        return DEL_KEY;
+    case KEY_HOME:
+        return HOME_KEY;
+    case KEY_END:
+        return END_KEY;
+    case KEY_PPAGE:
+        return PAGE_UP;
+    case KEY_NPAGE:
+        return PAGE_DOWN;
+    default:
         return c;
     }
 }
@@ -1104,10 +1051,9 @@ void editorScroll()
     }
 }
 
-void editorDrawRows(struct abuf *ab)
+void editorDrawRows()
 {
-    int y;
-    for (y = 0; y < E.screenrows; y++)
+    for (int y = 0; y < E.screenrows; y++)
     {
         int filerow = y + E.rowoff;
         if (filerow >= E.numrows)
@@ -1122,78 +1068,34 @@ void editorDrawRows(struct abuf *ab)
                 int padding = (E.screencols - welcomelen) / 2;
                 if (padding)
                 {
-                    abAppend(ab, "~", 1);
+                    addch('~');
                     padding--;
                 }
                 while (padding--)
-                    abAppend(ab, " ", 1);
-                abAppend(ab, welcome, welcomelen);
+                    addch(' ');
+                printw("%s", welcome);
             }
             else
             {
-                abAppend(ab, "~", 1);
+                addch('~');
             }
         }
         else
         {
-            char linenum[16];
-            snprintf(linenum, sizeof(linenum), "%4d ", filerow + 1);
-            abAppend(ab, "\x1b[33m", 5); // Set line number color to yellow
-            abAppend(ab, linenum, strlen(linenum));
-            abAppend(ab, "\x1b[39m", 5); // Reset to default color
-            abAppend(ab, "  ", 2);       // Add extra space between line numbers and content
-
-            int len = E.row[filerow].rsize - E.coloff;
+            erow *row = &E.row[filerow];
+            int len = row->rsize - E.coloff;
             if (len < 0)
                 len = 0;
             if (len > E.screencols)
                 len = E.screencols;
-            char *c = &E.row[filerow].render[E.coloff];
-            unsigned char *hl = &E.row[filerow].hl[E.coloff];
-            int current_color = -1;
-            int j;
-            for (j = 0; j < len; j++)
+            char *c = &row->render[E.coloff];
+            for (int j = 0; j < len; j++)
             {
-                if (iscntrl(c[j]))
-                {
-                    char sym = (c[j] <= 26) ? '@' + c[j] : '?';
-                    abAppend(ab, "\x1b[7m", 4);
-                    abAppend(ab, &sym, 1);
-                    abAppend(ab, "\x1b[m", 3);
-                    if (current_color != -1)
-                    {
-                        char buf[16];
-                        int clen = snprintf(buf, sizeof(buf), "\x1b[%dm", current_color);
-                        abAppend(ab, buf, clen);
-                    }
-                }
-                else if (hl[j] == HL_NORMAL)
-                {
-                    if (current_color != -1)
-                    {
-                        abAppend(ab, "\x1b[39m", 5);
-                        current_color = -1;
-                    }
-                    abAppend(ab, &c[j], 1);
-                }
-                else
-                {
-                    int color = editorSyntaxToColor(hl[j]);
-                    if (color != current_color)
-                    {
-                        current_color = color;
-                        char buf[16];
-                        int clen = snprintf(buf, sizeof(buf), "\x1b[%dm", color);
-                        abAppend(ab, buf, clen);
-                    }
-                    abAppend(ab, &c[j], 1);
-                }
+                addch(c[j]);
             }
-            abAppend(ab, "\x1b[39m", 5);
         }
-
-        abAppend(ab, "\x1b[K", 3);
-        abAppend(ab, "\r\n", 2);
+        clrtoeol();
+        addch('\n');
     }
 }
 
@@ -1239,25 +1141,10 @@ void editorDrawMessageBar(struct abuf *ab)
 void editorRefreshScreen()
 {
     editorScroll();
-
-    struct abuf ab = ABUF_INIT;
-
-    abAppend(&ab, "\x1b[?25l", 6);
-    abAppend(&ab, "\x1b[H", 3);
-
-    editorDrawRows(&ab);
-    editorDrawStatusBar(&ab);
-    editorDrawMessageBar(&ab);
-
-    char buf[32];
-    snprintf(buf, sizeof(buf), "\x1b[%d;%dH", (E.cy - E.rowoff) + 1,
-             (E.rx - E.coloff) + 8);
-    abAppend(&ab, buf, strlen(buf));
-
-    abAppend(&ab, "\x1b[?25h", 6);
-
-    write(STDOUT_FILENO, ab.b, ab.len);
-    abFree(&ab);
+    clear();
+    editorDrawRows();
+    move(E.cy - E.rowoff, E.cx - E.coloff);
+    refresh();
 }
 
 void editorSetStatusMessage(const char *fmt, ...)
@@ -1487,20 +1374,26 @@ void initEditor()
 
 int main(int argc, char *argv[])
 {
-    enableRawMode();
+    initscr();
+    raw();
+    noecho();
+    keypad(stdscr, TRUE);
+    start_color();
+
     initEditor();
     if (argc >= 2)
     {
         editorOpen(argv[1]);
     }
 
-    editorSetStatusMessage(
-        "HELP: Ctrl-S = save | Ctrl-Q = quit | Ctrl-F = find");
+    editorSetStatusMessage("HELP: Ctrl-S = save | Ctrl-Q = quit | Ctrl-F = find");
 
     while (1)
     {
         editorRefreshScreen();
         editorProcessKeypress();
     }
+
+    endwin();
     return 0;
 }
