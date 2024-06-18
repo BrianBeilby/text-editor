@@ -744,14 +744,62 @@ void editorRowDelChar(erow *row, int at)
 
 /*** editor operations ***/
 
+int editorFindLastWhitespace(erow *row)
+{
+    for (int i = E.screencols; i > 0; i--)
+    {
+        if (isspace(row->chars[i]))
+        {
+            return i;
+        }
+    }
+    return -1;
+}
+
 void editorInsertChar(int c)
 {
     if (E.cy == E.numrows)
     {
         editorInsertRow(E.numrows, "", 0);
     }
-    editorRowInsertChar(&E.row[E.cy], E.cx, c);
-    E.cx++;
+
+    erow *row = &E.row[E.cy];
+
+    editorRowInsertChar(row, E.cx, c);
+
+    if (row->size >= E.screencols)
+    {
+        int wrap_position = editorFindLastWhitespace(row);
+
+        if (wrap_position != -1)
+        {
+            editorInsertRow(E.cy + 1, &row->chars[wrap_position + 1], row->size - wrap_position - 1);
+            row = &E.row[E.cy];
+            row->size = wrap_position;
+            row->chars[row->size] = '\0';
+            editorUpdateRow(row);
+
+            E.cy++;
+            E.cx = 0;
+        }
+        else
+        {
+            editorInsertRow(E.cy + 1, &row->chars[E.screencols], row->size - E.screencols);
+            row = &E.row[E.cy];
+            row->size = E.screencols;
+            row->chars[row->size] = '\0';
+            editorUpdateRow(row);
+
+            E.cy++;
+            E.cx = 0;
+        }
+    }
+    else
+    {
+        E.cx++;
+    }
+
+    E.dirty++;
 }
 
 int editorIndentationLevel(erow *row)
