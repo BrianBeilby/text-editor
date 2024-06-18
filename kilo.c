@@ -754,6 +754,27 @@ void editorInsertChar(int c)
     E.cx++;
 }
 
+int editorIndentationLevel(erow *row)
+{
+    int level = 0;
+    for (int i = 0; i < row->size; i++)
+    {
+        if (row->chars[i] == ' ')
+        {
+            level++;
+        }
+        else if (row->chars[i] == '\t')
+        {
+            level += KILO_TAB_STOP;
+        }
+        else
+        {
+            break;
+        }
+    }
+    return level;
+}
+
 void editorInsertNewline()
 {
     if (E.cx == 0)
@@ -763,14 +784,22 @@ void editorInsertNewline()
     else
     {
         erow *row = &E.row[E.cy];
+        int indent_level = editorIndentationLevel(row);
+
         editorInsertRow(E.cy + 1, &row->chars[E.cx], row->size - E.cx);
         row = &E.row[E.cy];
         row->size = E.cx;
         row->chars[row->size] = '\0';
         editorUpdateRow(row);
+
+        erow *new_row = &E.row[E.cy + 1];
+        for (int i = 0; i < indent_level; i++)
+        {
+            editorRowInsertChar(new_row, i, ' ');
+        }
+        E.cy++;
+        E.cx = indent_level;
     }
-    E.cy++;
-    E.cx = 0;
 }
 
 void editorDelChar()
@@ -1061,10 +1090,10 @@ void editorDrawRows(struct abuf *ab)
         {
             char linenum[16];
             snprintf(linenum, sizeof(linenum), "%4d ", filerow + 1);
-            abAppend(ab, "\x1b[33m", 5);  // Set line number color to yellow
+            abAppend(ab, "\x1b[33m", 5); // Set line number color to yellow
             abAppend(ab, linenum, strlen(linenum));
-            abAppend(ab, "\x1b[39m", 5);  // Reset to default color
-            abAppend(ab, "  ", 2);  // Add extra space between line numbers and content
+            abAppend(ab, "\x1b[39m", 5); // Reset to default color
+            abAppend(ab, "  ", 2);       // Add extra space between line numbers and content
 
             int len = E.row[filerow].rsize - E.coloff;
             if (len < 0)
