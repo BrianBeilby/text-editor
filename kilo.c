@@ -396,6 +396,7 @@ int getWindowSize(int *rows, int *cols)
     {
         *cols = ws.ws_col;
         *rows = ws.ws_row;
+        *cols -= 5;
         return 0;
     }
 }
@@ -1058,6 +1059,13 @@ void editorDrawRows(struct abuf *ab)
         }
         else
         {
+            char linenum[16];
+            snprintf(linenum, sizeof(linenum), "%4d ", filerow + 1);
+            abAppend(ab, "\x1b[33m", 5);  // Set line number color to yellow
+            abAppend(ab, linenum, strlen(linenum));
+            abAppend(ab, "\x1b[39m", 5);  // Reset to default color
+            abAppend(ab, "  ", 2);  // Add extra space between line numbers and content
+
             int len = E.row[filerow].rsize - E.coloff;
             if (len < 0)
                 len = 0;
@@ -1166,7 +1174,7 @@ void editorRefreshScreen()
 
     char buf[32];
     snprintf(buf, sizeof(buf), "\x1b[%d;%dH", (E.cy - E.rowoff) + 1,
-             (E.rx - E.coloff) + 1);
+             (E.rx - E.coloff) + 8);
     abAppend(&ab, buf, strlen(buf));
 
     abAppend(&ab, "\x1b[?25h", 6);
