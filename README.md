@@ -14,7 +14,7 @@ Kilo is a small, simple, and efficient text editor written in C. Inspired by the
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/yourusername/kilo-editor.git
+   git clone https://github.com/BrianBeilby/text-editor.git
    cd kilo-editor
    ```
 2. Compile the editor
