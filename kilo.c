@@ -1083,22 +1083,36 @@ void editorFindCallback(char *query, int key)
     }
 }
 
-void editorFind()
+void editorFind(char *query)
 {
     int saved_cx = E.cx;
     int saved_cy = E.cy;
     int saved_coloff = E.coloff;
     int saved_rowoff = E.rowoff;
 
-    char *query = editorPrompt("Search: %s (Use ESC/Arrows/Enter)",
-                               editorFindCallback);
+    int query_len = strlen(query);
+    int last_match = -1;
+    int direction = 1;
+    int i;
 
-    if (query)
+    for (i = 0; i < E.numrows; i++)
     {
-        free(query);
+        erow *row = &E.row[i];
+        char *match = strstr(row->render, query);
+        if (match)
+        {
+            last_match = i;
+            E.cy = i;
+            E.cx = editorRowRxToCx(row, match - row->render);
+            E.rowoff = E.numrows;
+            editorSetStatusMessage("Match found at line %d", i + 1);
+            break;
+        }
     }
-    else
+
+    if (last_match == -1)
     {
+        editorSetStatusMessage("No matches found for: %s", query);
         E.cx = saved_cx;
         E.cy = saved_cy;
         E.coloff = saved_coloff;
@@ -1387,6 +1401,14 @@ void handleCommand(char *cmd)
     }
 }
 
+void handleFindCommand(char *query)
+{
+    if (query)
+    {
+        editorFind(query);
+    }
+}
+
 char *editorPrompt(char *prompt, void (*callback)(char *, int))
 {
     size_t bufsize = 128;
@@ -1518,7 +1540,8 @@ void editorProcessKeypress()
             editorSave();
             break;
         case '\x1b':
-            enterNormalMode();
+            E.mode = MODE_NORMAL;
+            editorSetStatusMessage("");
             break;
         case BACKSPACE:
         case CTRL_KEY('h'):
@@ -1537,7 +1560,7 @@ void editorProcessKeypress()
         switch (c)
         {
         case 'i':
-            enterInsertMode();
+            E.mode = MODE_INSERT;
             break;
         case 'h':
             editorMoveCursor(ARROW_LEFT);
@@ -1557,6 +1580,10 @@ void editorProcessKeypress()
         case ':':
             enterCommandMode();
             break;
+        case '/':
+            enterCommandMode();
+            editorSetStatusMessage("/");
+            break;
         case CTRL_KEY('q'):
             if (E.dirty && E.quit_times > 0)
             {
@@ -1573,9 +1600,6 @@ void editorProcessKeypress()
         case CTRL_KEY('s'):
             editorSave();
             break;
-        case '/':
-            editorFind();
-            break;
         default:
             break;
         }
@@ -1589,7 +1613,14 @@ void editorProcessKeypress()
         {
         case '\r':
             command[cmdlen] = '\0';
-            handleCommand(command);
+            if (command[0] == '/')
+            {
+                handleFindCommand(&command[1]);
+            }
+            else
+            {
+                handleCommand(command);
+            }
             cmdlen = 0;
             E.mode = MODE_NORMAL;
             break;
@@ -1614,8 +1645,6 @@ void editorProcessKeypress()
         }
         editorSetStatusMessage(":%s", command);
     }
-
-    E.quit_times = E.quit_times;
 }
 
 /*** init ***/
