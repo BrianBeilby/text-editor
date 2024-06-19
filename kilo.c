@@ -94,6 +94,11 @@ struct editorConfig
     struct termios orig_termios;
     int tab_stop;
     int quit_times;
+    int status_msg_timeout;
+    int show_line_numbers;
+    int wrap_lines;
+    int use_spaces_for_indent;
+    int highlight_search_matches;
 };
 
 struct editorConfig E;
@@ -767,7 +772,7 @@ void editorInsertChar(int c)
 
     editorRowInsertChar(row, E.cx, c);
 
-    if (row->size >= E.screencols)
+    if (E.wrap_lines && row->size >= E.screencols)
     {
         int wrap_position = editorFindLastWhitespace(row);
 
@@ -914,6 +919,26 @@ void editorReadConfigFile(char *config_filename)
         else if (strncmp(line, "KILO_QUIT_TIMES=", 16) == 0)
         {
             E.quit_times = atoi(&line[16]);
+        }
+        else if (strncmp(line, "STATUS_MSG_TIMEOUT=", 19) == 0)
+        {
+            E.status_msg_timeout = atoi(&line[19]);
+        }
+        else if (strncmp(line, "SHOW_LINE_NUMBERS=", 18) == 0)
+        {
+            E.show_line_numbers = atoi(&line[18]);
+        }
+        else if (strncmp(line, "WRAP_LINES=", 11) == 0)
+        {
+            E.wrap_lines = atoi(&line[11]);
+        }
+        else if (strncmp(line, "USE_SPACES_FOR_INDENT=", 22) == 0)
+        {
+            E.use_spaces_for_indent = atoi(&line[22]);
+        }
+        else if (strncmp(line, "HIGHLIGHT_SEARCH_MATCHES=", 25) == 0)
+        {
+            E.highlight_search_matches = atoi(&line[25]);
         }
     }
 
@@ -1162,12 +1187,15 @@ void editorDrawRows(struct abuf *ab)
         }
         else
         {
-            char linenum[16];
-            snprintf(linenum, sizeof(linenum), "%4d ", filerow + 1);
-            abAppend(ab, "\x1b[33m", 5); // Set line number color to yellow
-            abAppend(ab, linenum, strlen(linenum));
-            abAppend(ab, "\x1b[39m", 5); // Reset to default color
-            abAppend(ab, "  ", 2);       // Add extra space between line numbers and content
+            if (E.show_line_numbers)
+            {
+                char linenum[16];
+                snprintf(linenum, sizeof(linenum), "%4d ", filerow + 1);
+                abAppend(ab, "\x1b[33m", 5);
+                abAppend(ab, linenum, strlen(linenum));
+                abAppend(ab, "\x1b[39m", 5);
+                abAppend(ab, "  ", 2);
+            }
 
             int len = E.row[filerow].rsize - E.coloff;
             if (len < 0)
@@ -1258,7 +1286,7 @@ void editorDrawMessageBar(struct abuf *ab)
     int msglen = strlen(E.statusmsg);
     if (msglen > E.screencols)
         msglen = E.screencols;
-    if (msglen && time(NULL) - E.statusmsg_time < 5)
+    if (msglen && time(NULL) - E.statusmsg_time < E.status_msg_timeout)
         abAppend(ab, E.statusmsg, msglen);
 }
 
@@ -1514,6 +1542,11 @@ void initEditor()
     E.syntax = NULL;
     E.tab_stop = 8;
     E.quit_times = 3;
+    E.status_msg_timeout = 5;
+    E.show_line_numbers = 1;
+    E.wrap_lines = 1;
+    E.use_spaces_for_indent = 1;
+    E.highlight_search_matches = 1;
 
     editorReadConfigFile(".kilorc");
 
