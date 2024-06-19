@@ -1,4 +1,4 @@
-# Kilo Editor
+# Kilo Text Editor
 
 Kilo is a small, simple, and efficient text editor written in C. Inspired by the original [kilo](https://github.com/antirez/kilo) created by Salvatore Sanfilippo (antirez), this project has been expanded and modified to include additional features like syntax highlighting, modal editing, and more.
 
