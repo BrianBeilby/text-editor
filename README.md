@@ -58,9 +58,9 @@ Kilo is a small, simple, and efficient text editor written in C. Inspired by the
 You can create a `.kilorc` file in the home directory to customize the editor's settings. Here is an example configuration file:
 
 ```plaintext
-KILO_TAB_STOP=4
+KILO_TAB_STOP=8
 KILO_QUIT_TIMES=3
-KILO_STATUS_MSG_TIMEOUT=5
+KILO_STATUS_MSG_TIMEOUT=10
 KILO_SHOW_LINE_NUMBERS=1
 KILO_WRAP_LINES=1
 KILO_USE_SPACES_FOR_INDENT=1
