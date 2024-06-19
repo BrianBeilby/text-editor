@@ -20,8 +20,6 @@
 /*** defines ***/
 
 #define KILO_VERSION "0.0.1"
-#define KILO_TAB_STOP 8
-#define KILO_QUIT_TIMES 3
 
 #define CTRL_KEY(k) ((k) & 0x1f)
 
@@ -94,6 +92,8 @@ struct editorConfig
     time_t statusmsg_time;
     struct editorSyntax *syntax;
     struct termios orig_termios;
+    int tab_stop;
+    int quit_times;
 };
 
 struct editorConfig E;
@@ -611,7 +611,7 @@ int editorRowCxToRx(erow *row, int cx)
     for (j = 0; j < cx; j++)
     {
         if (row->chars[j] == '\t')
-            rx += (KILO_TAB_STOP - 1) - (rx % KILO_TAB_STOP);
+            rx += (E.tab_stop - 1) - (rx % E.tab_stop);
         rx++;
     }
     return rx;
@@ -624,7 +624,7 @@ int editorRowRxToCx(erow *row, int rx)
     for (cx = 0; cx < row->size; cx++)
     {
         if (row->chars[cx] == '\t')
-            cur_rx += (KILO_TAB_STOP - 1) - (cur_rx % KILO_TAB_STOP);
+            cur_rx += (E.tab_stop - 1) - (cur_rx % E.tab_stop);
         cur_rx++;
 
         if (cur_rx > rx)
@@ -642,7 +642,7 @@ void editorUpdateRow(erow *row)
             tabs++;
 
     free(row->render);
-    row->render = malloc(row->size + tabs * (KILO_TAB_STOP - 1) + 1);
+    row->render = malloc(row->size + tabs * (E.tab_stop - 1) + 1);
 
     int idx = 0;
     for (j = 0; j < row->size; j++)
@@ -650,7 +650,7 @@ void editorUpdateRow(erow *row)
         if (row->chars[j] == '\t')
         {
             row->render[idx++] = ' ';
-            while (idx % KILO_TAB_STOP != 0)
+            while (idx % E.tab_stop != 0)
                 row->render[idx++] = ' ';
         }
         else
@@ -813,7 +813,7 @@ int editorIndentationLevel(erow *row)
         }
         else if (row->chars[i] == '\t')
         {
-            level += KILO_TAB_STOP;
+            level += E.tab_stop;
         }
         else
         {
@@ -893,6 +893,32 @@ char *editorRowsToString(int *buflen)
     }
 
     return buf;
+}
+
+void editorReadConfigFile(char *config_filename)
+{
+    FILE *fp = fopen(config_filename, "r");
+    if (!fp)
+        return;
+
+    char *line = NULL;
+    size_t len = 0;
+    ssize_t read;
+
+    while ((read = getline(&line, &len, fp)) != -1)
+    {
+        if (strncmp(line, "KILO_TAB_STOP=", 14) == 0)
+        {
+            E.tab_stop = atoi(&line[14]);
+        }
+        else if (strncmp(line, "KILO_QUIT_TIMES=", 16) == 0)
+        {
+            E.quit_times = atoi(&line[16]);
+        }
+    }
+
+    free(line);
+    fclose(fp);
 }
 
 void editorOpen(char *filename)
@@ -1376,7 +1402,11 @@ void editorMoveCursor(int key)
 
 void editorProcessKeypress()
 {
-    static int quit_times = KILO_QUIT_TIMES;
+    static int quit_times = -1; // Use -1 to indicate uninitialized
+    if (quit_times == -1)
+    {
+        quit_times = E.quit_times;
+    }
 
     int c = editorReadKey();
 
@@ -1460,7 +1490,10 @@ void editorProcessKeypress()
         break;
     }
 
-    quit_times = KILO_QUIT_TIMES;
+    if (c != CTRL_KEY('q'))
+    {
+        quit_times = E.quit_times; // Reset quit_times to its initial value
+    }
 }
 
 /*** init ***/
@@ -1479,6 +1512,10 @@ void initEditor()
     E.statusmsg[0] = '\0';
     E.statusmsg_time = 0;
     E.syntax = NULL;
+    E.tab_stop = 8;
+    E.quit_times = 3;
+
+    editorReadConfigFile(".kilorc");
 
     if (getWindowSize(&E.screenrows, &E.screencols) == -1)
         die("getWindowSize");
